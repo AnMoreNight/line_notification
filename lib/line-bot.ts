@@ -26,7 +26,7 @@ export async function sendLineMessage(userId: string, message: string) {
 }
 
 // Helper function to send rich messages
-export async function sendLineRichMessage(userId: string, altText: string, template: any) {
+export async function sendLineRichMessage(userId: string, altText: string, template: unknown) {
   try {
     await lineBotClient.pushMessage(userId, {
       type: 'template',

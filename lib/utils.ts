@@ -1,7 +1,6 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { format, addMonths, subMonths, subWeeks, isAfter, isBefore } from 'date-fns'
-import { ja } from 'date-fns/locale'
+import { format, subMonths, subWeeks, isAfter, isBefore } from 'date-fns'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -10,7 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 // Date utilities
 export function formatDate(date: Date | string, formatStr: string = 'yyyy年MM月dd日') {
   const dateObj = typeof date === 'string' ? new Date(date) : date
-  return format(dateObj, formatStr, { locale: ja })
+  return format(dateObj, formatStr)
 }
 
 export function calculateNotificationDates(expiryDate: Date) {

@@ -1,0 +1,119 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// This block tells Prisma how to handle seeding
+// You can run `npx prisma db seed` to seed your database
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  INDIVIDUAL
+  CORPORATE
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+model User {
+  id                String     @id @default(cuid())
+  lineUserId        String     @unique
+  displayName       String
+  profilePictureUrl String?
+  email             String?
+  phoneNumber       String?
+  role              UserRole   @default(INDIVIDUAL)
+  status            UserStatus @default(PENDING)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  // Individual user fields
+  birthYear         Int?
+  residenceRegion   String?
+  
+  // Corporate user fields
+  companyId         String?
+  company           Company?   @relation(fields: [companyId], references: [id])
+  storeName         String?
+  departmentName    String?
+  employeeId        String?
+  
+  // Relationships
+  certifications    Certification[]
+  notifications     Notification[]
+  
+  @@map("users")
+}
+
+model Company {
+  id                String     @id @default(cuid())
+  name              String
+  registrationUrl   String     @unique
+  contractExpiry    DateTime?
+  isActive          Boolean    @default(true)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  
+  // Relationships
+  employees         User[]
+  notifications     Notification[]
+  
+  @@map("companies")
+}
+
+model Certification {
+  id                String     @id @default(cuid())
+  userId            String
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  certificationType String     // e.g., "研修認定", "薬剤師免許"
+  expiryDate        DateTime
+  imageUrl          String?
+  isActive          Boolean    @default(true)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  
+  // Relationships
+  notifications     Notification[]
+  schedules         NotificationSchedule[]
+  
+  @@map("certifications")
+}
+
+model Notification {
+  id                String     @id @default(cuid())
+  userId            String
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId         String?
+  company           Company?   @relation(fields: [companyId], references: [id])
+  certificationId   String?
+  certification     Certification? @relation(fields: [certificationId], references: [id])
+  message           String
+  notificationType  String     // e.g., "6months", "3months", "1week"
+  sentAt            DateTime?
+  isRead            Boolean    @default(false)
+  createdAt         DateTime   @default(now())
+  
+  @@map("notifications")
+}
+
+model NotificationSchedule {
+  id                String     @id @default(cuid())
+  certificationId   String
+  certification     Certification @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+  notificationType  String     // "6months", "3months", "1week"
+  scheduledDate     DateTime
+  isSent            Boolean    @default(false)
+  createdAt         DateTime   @default(now())
+  
+  @@map("notification_schedules")
+}
